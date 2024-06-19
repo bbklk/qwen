@@ -35,8 +35,8 @@ class submission():
         if question_type == 'text2sql':
             current_db_id = current_user_question['db_id']
             cur_db_info = self.parse_table(self.table_meta_path)[current_db_id]
-            system_prompt = f"You are a database expert, output can only be SQL statements. The ((shorter)) output, the better. Shorter the output, make the output as short as possible. I want [short] output"
-            user_prompt = f"Your role: An experienced SQL database programmer, your output can only be SQL statements" \
+            system_prompt = f"This is a text to sql question. You are a database expert, output can only be SQL statements that can be correctly operated. DO NOT GIVE ME ANY EXPLAINATION."
+            user_prompt = f"Your role: An experienced SQL database programmer, your output can only be SQL statements, if the SQL statement is wrong, you will be killed" \
                           f"Your skills: " \
                           f"    1. Proficient in all aspects of SQL knowledge" \
                           f"    2. Well-versed in SQL statements and capable of ensuring the generated statements can run correctly" \
@@ -49,15 +49,16 @@ class submission():
                           f"    Your reply: SELECT TYPE FROM ship WHERE Tonnage > 6000 INTERSECT SELECT TYPE FROM ship WHERE Tonnage < 4000;" \
                           f"    Question 3: What is the average number of employees in departments ranked between 10 and 15?" \
                           f"    Your reply: SELECT AVG(num_employees) FROM department WHERE ranking BETWEEN 10 AND 15;" \
-                          f"The shorter output, the better"
+                          f"DO NOT GIVE ME ANY EXPLAINATION. only output SQL statements, make sure your sql statement can fulfill the requirement"
 
         elif question_type == 'multiple_choice':
             options = "A." + current_user_question['optionA'] + "B." + current_user_question['optionB']+ "C." + current_user_question['optionC']+ "D." + current_user_question['optionD']
-            system_prompt = "You are a database expert, output can only be one of the letters A, B, C, or D. The ((shorter)) output, the better. Shorter the output, make the output as short as possible. I want [short] output"
-            user_prompt = f"Your role: An experienced SQL database programmer" \
+            system_prompt = "This is a multi choice question. You are a database expert, output can only be one of the letters A, B, C, or D. The ((correct)) output, the better. Shorter the output, make the output as short as possible. I want [correct] output. You can have long time to think about each choice before you make the correct answer"
+            user_prompt = f"Your role: An experienced SQL database programmer, if the answer is wrong, you will be killed" \
                           f"Your skills: " \
                           f"    1. Proficient in all aspects of SQL knowledge. " \
                           f"    2. Capable of outputting the only one correct answer from four options. " \
+                          f"    3. Use the process of elimination to eliminate wrong answers one by one." \
                           f"Your task: The user will provide a multiple-choice question with the question as {user_question} and the options as {options}. You need to provide the correct option. " \
                           f"Here are some reference examples:" \
                           f"    Question 1: In SQL, the operator equivalent to 'NOT IN' is. " \
@@ -66,20 +67,22 @@ class submission():
                           f"    Question 2: There is a student table Student(Sno char(8), Sname char(10), Ssex char(2), Sage integer, Dno char(2), Sclass char(6)). To retrieve the 'age and name of all students with an age less than or equal to 18' from the student table, the correct SQL statement is." \
                           f"    Options: A. Select Sage, Sname From Student; B. Select * From Student Where Sage <= 18; C. Select Sage, Sname From Student Where Sage <= 18; D. Select Sname From Student Where Sage <= 18; " \
                           f"    Your reply: C" \
-                          f"The shorter output, the better"
+                          f"Take your time to eliminate wrong answers one by one. Before you make decision, think if other choices can be correct, and select the most reasonable choice. Run the SQL statement in each choice, and see if the result is correct." \
+                          f"If you select B, think about if C is correct, vise versa. If you select A, think about if D is correct, vice versa. If you select C, think about if A is correct, vise versa. If you select D, think about if B is correct, vise versa. And same for other choices."
         elif question_type == 'true_false_question':
-            system_prompt = "You are a database expert, output can only be True or False. The ((shorter)) output, the better. Shorter the output, make the output as short as possible. I want [short] output"
-            user_prompt = f"Your role: An experienced SQL database programmer. " \
+            system_prompt = "This is a true or false question. You are a database expert, output can only be True or False. The ((correct)) output, the better. Shorter the output, make the output as short as possible. I want [correct] output. You can have long time to think about each choice before you make the correct answer"
+            user_prompt = f"Your role: An experienced SQL database programmer, if the answer is wrong, you will be killed" \
                           f"Your skills: " \
                           f"    1. Proficient in all aspects of SQL knowledge. " \
                           f"    2. Can only output True or False as results. " \
+                          f"    3. Use the process of elimination to eliminate wrong answer. " \
                           f"Your task: The user will provide a true/false question with the question as {user_question}. Please determine the truthfulness of the question (True/False). " \
                           f"Here are some reference examples:" \
                           f"    Question 1: In SQL, SELECT * is used to select all columns' data from a table." \
                           f"    Your reply: True" \
                           f"    Question 2: In SQL, the UPDATE statement can be used to delete records." \
                           f"    Your reply: False" \
-                          f"The shorter output, the better"
+                          f"Take your time to eliminate wrong answers one by one. Before you make any choice, please think if the opposite can be correct, and select the most reasonable choice"
 
         messages = [
         {"role": "system", "content": system_prompt},
