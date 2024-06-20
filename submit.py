@@ -1,5 +1,6 @@
 import json
 
+
 # 此类会被跑分服务器继承， 可以在类中自由添加自己的prompt构建逻辑, 除了parse_table 和 run_inference_llm 两个方法不可改动
 # 注意千万不可修改类名和下面已提供的三个函数名称和参数， 这三个函数都会被跑分服务器调用
 class submission():
@@ -9,7 +10,7 @@ class submission():
     # 此函数不可改动, 与跑分服务器端逻辑一致， 返回值 grouped_by_db_id 是数据库的元数据（包含所有验证测试集用到的数据库）
     # 请不要对此函数做任何改动
     def parse_table(self, table_meta_path):
-        with open(table_meta_path,'r') as db_meta:
+        with open(table_meta_path, 'r') as db_meta:
             db_meta_info = json.load(db_meta)
         # 创建一个空字典来存储根据 db_id 分类的数据
         grouped_by_db_id = {}
@@ -18,7 +19,7 @@ class submission():
         for item in db_meta_info:
             # 获取当前字典的 db_id
             db_id = item['db_id']
-            
+
             # 如果 db_id 已存在于字典中，将当前字典追加到对应的列表
             if db_id in grouped_by_db_id:
                 grouped_by_db_id[db_id].append(item)
@@ -35,14 +36,14 @@ class submission():
         if question_type == 'text2sql':
             current_db_id = current_user_question['db_id']
             cur_db_info = self.parse_table(self.table_meta_path)[current_db_id]
-            cur_db_info1 = self.parse_table(self.table_meta_path)['ship_mission']
-            cur_db_info2 = self.parse_table(self.table_meta_path)['department_management']
-            cur_db_info3 = self.parse_table(self.table_meta_path)['restaurants']
-            cur_db_info4 = self.parse_table(self.table_meta_path)['scholar']
+            cur_db_info1 = self.parse_table('../external_data/sample_tables.json')['ship_mission']
+            cur_db_info2 = self.parse_table('../external_data/sample_tables.json')['department_management']
+            cur_db_info3 = self.parse_table('../external_data/sample_tables.json')['restaurants']
+            cur_db_info4 = self.parse_table('../external_data/sample_tables.json')['scholar']
             system_prompt = f"This is a text to sql task. You are a database expert, output can only be SQL queries that can be correctly operated. " \
                             f"DO NOT output ANY thought process, although you can take a long time of thinking and use chain of thought and solve the task step by step." \
                             f"Understand the meaning of user's order." \
-                            # f"The ((shorter)) output, the better. I want [short and correct] output. The output is in just one line."
+                # f"The ((shorter)) output, the better. I want [short and correct] output. The output is in just one line."
             user_prompt = f"Your role: An experienced SQL database programmer, your output can only be SQL statements, if the SQL statement is wrong, you will be killed" \
                           f"Here are some reference examples:" \
                           f"    Database format is: {cur_db_info1}, Order: 既有吨位大于6000的船舶又有吨位小于4000的船舶的船舶类型是什么？" \
@@ -54,10 +55,6 @@ class submission():
                           f"    Database format is: {cur_db_info4}, Order: Eric C. Kerrigan 's Liquid Automatica paper" \
                           f"    SQL query: SELECT DISTINCT t2.paperid FROM paperkeyphrase AS t5 JOIN keyphrase AS t3 ON t5.keyphraseid  =  t3.keyphraseid JOIN writes AS t4 ON t4.paperid  =  t5.paperid JOIN paper AS t2 ON t4.paperid  =  t2.paperid JOIN author AS t1 ON t4.authorid  =  t1.authorid JOIN venue AS t6 ON t6.venueid  =  t2.venueid WHERE t1.authorname  =  \"Eric C. Kerrigan\" AND t3.keyphrasename  =  \"Liquid\" AND t6.venuename  =  \"Automatica\";" \
                           f"Database format is: {cur_db_info}. Order: {user_question}.  SQL query: "
-
-
-
-
 
             # user_prompt = f"Your role: An experienced SQL database programmer, your output can only be SQL statements, if the SQL statement is wrong, you will be killed" \
             #               f"Your skills: " \
@@ -77,7 +74,8 @@ class submission():
             #               f"There is a database with the specific format: {cur_db_info}. The order is: {user_question}. SQL query: "
 
         elif question_type == 'multiple_choice':
-            options = "A." + current_user_question['optionA'] + "B." + current_user_question['optionB']+ "C." + current_user_question['optionC']+ "D." + current_user_question['optionD']
+            options = "A." + current_user_question['optionA'] + "B." + current_user_question['optionB'] + "C." + \
+                      current_user_question['optionC'] + "D." + current_user_question['optionD']
             system_prompt = "Your answer is JUST one letter. This is a multi choice question. You are a database expert, output can only be one of the letters A, B, C, or D. " \
                             "Solve the question step by step." \
                             "The ((shorter)) output, the better. Shorter the output, make the output as short as possible. I want [short and correct] output. " \
@@ -92,13 +90,13 @@ class submission():
                           f"If you select B, think about if C is correct, vise versa. If you select A, think about if D is correct, vice versa. If you select C, think about if A is correct, vise versa. If you select D, think about if B is correct, vise versa. And same for other choices." \
                           f"DO NOT output ANY thought process. Do not dare your output to be longer than one letter!!!" \
                           f"Here is the question {user_question} and the options {options}. Your choice is:"
-                          # f"Here are some reference examples:" \
-                          # f"    Question 1: In SQL, the operator equivalent to 'NOT IN' is. " \
-                          # f"    Options: A. <>ALL B. <>SOME C. =SOME D. =ALL" \
-                          # f"    Your reply: A" \
-                          # f"    Question 2: There is a student table Student(Sno char(8), Sname char(10), Ssex char(2), Sage integer, Dno char(2), Sclass char(6)). To retrieve the 'age and name of all students with an age less than or equal to 18' from the student table, the correct SQL statement is." \
-                          # f"    Options: A. Select Sage, Sname From Student; B. Select * From Student Where Sage <= 18; C. Select Sage, Sname From Student Where Sage <= 18; D. Select Sname From Student Where Sage <= 18; " \
-                          # f"    Your reply: C"
+            # f"Here are some reference examples:" \
+            # f"    Question 1: In SQL, the operator equivalent to 'NOT IN' is. " \
+            # f"    Options: A. <>ALL B. <>SOME C. =SOME D. =ALL" \
+            # f"    Your reply: A" \
+            # f"    Question 2: There is a student table Student(Sno char(8), Sname char(10), Ssex char(2), Sage integer, Dno char(2), Sclass char(6)). To retrieve the 'age and name of all students with an age less than or equal to 18' from the student table, the correct SQL statement is." \
+            # f"    Options: A. Select Sage, Sname From Student; B. Select * From Student Where Sage <= 18; C. Select Sage, Sname From Student Where Sage <= 18; D. Select Sname From Student Where Sage <= 18; " \
+            # f"    Your reply: C"
 
         elif question_type == 'true_false_question':
 
@@ -118,10 +116,9 @@ class submission():
                           f"    Question 2: In SQL, the UPDATE statement can be used to delete records." \
                           f"    Your reply: False"
 
-
         messages = [
-        {"role": "system", "content": system_prompt},
-        {"role": "user", "content": user_prompt}
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": user_prompt}
         ]
         return messages
 
