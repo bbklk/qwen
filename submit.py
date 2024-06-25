@@ -1,12 +1,4 @@
 import json
-from openai import OpenAI
-
-
-# 本代码为测试用例，选手可自己调用本地大语言模型接口进行测试，具体的格式为OpenAI格式的接口形式
-openai_api_key = "sk-6d31b53c4c214328bb24a4883394b75e"  #请参照openai api使用文档，按照实际填写
-openai_api_base = "https://dashscope.aliyuncs.com/compatible-mode/v1"
-client = OpenAI(api_key=openai_api_key, base_url=openai_api_base)
-model = "qwen1.5-14b-chat"
 
 
 # 此类会被跑分服务器继承， 可以在类中自由添加自己的prompt构建逻辑, 除了parse_table 和 run_inference_llm 两个方法不可改动
@@ -530,14 +522,8 @@ class submission():
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": user_prompt}
             ]
-            llm_response = client.chat.completions.create(
-                messages=temp_messages1,
-                model=model,  # 这里填写所选择的LLM名称，推荐使用Qwen1.5-14B-Chat模型进行线下开发评估
-                max_tokens=2000,
-                temperature=0.0,  # temperature 实际跑分时默认设置为0.0，避免随机性
-                stream=False
-            )
-            llm_outputs1 = llm_response.choices[0].message.content
+            llm_response = self.run_inference_llm(temp_messages1)
+            llm_outputs1 = llm_response
             system_prompt = "Your answer is JUST SQL query without '```sql'. You are a database expert, output can only be SQL query, not in the markdown format" \
                             "The ((shorter)) output, the better. Shorter the output, make the output as short as possible. I want [short and correct] output. " \
                             "The output is only SQL query without explanation"
@@ -548,14 +534,8 @@ class submission():
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": user_prompt}
             ]
-            llm_response = client.chat.completions.create(
-                messages=temp_messages2,
-                model=model,  # 这里填写所选择的LLM名称，推荐使用Qwen1.5-14B-Chat模型进行线下开发评估
-                max_tokens=2000,
-                temperature=0.0,  # temperature 实际跑分时默认设置为0.0，避免随机性
-                stream=False
-            )
-            llm_outputs2 = llm_response.choices[0].message.content
+            llm_response = self.run_inference_llm(temp_messages2)
+            llm_outputs2 = llm_response
             user_prompt = f"Given {llm_outputs2}. I want only SQL query without any other sentences or explanations especially do not output '```sql', our updated answer is: "
 
         elif question_type == 'multiple_choice':
@@ -578,14 +558,8 @@ class submission():
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": user_prompt}
             ]
-            llm_response = client.chat.completions.create(
-                messages=temp_messages1,
-                model=model,  # 这里填写所选择的LLM名称，推荐使用Qwen1.5-14B-Chat模型进行线下开发评估
-                max_tokens=2000,
-                temperature=0.0,  # temperature 实际跑分时默认设置为0.0，避免随机性
-                stream=False
-            )
-            llm_outputs1 = llm_response.choices[0].message.content
+            llm_response = self.run_inference_llm(temp_messages1)
+            llm_outputs1 = llm_response
 
             system_prompt = "Your answer is JUST one letter. You are a database expert, output can only be one of the letters A, B, C, or D " \
                             "The ((shorter)) output, the better. Shorter the output, make the output as short as possible. I want [short and correct] output. " \
@@ -597,14 +571,8 @@ class submission():
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": user_prompt}
             ]
-            llm_response = client.chat.completions.create(
-                messages=temp_messages2,
-                model=model,  # 这里填写所选择的LLM名称，推荐使用Qwen1.5-14B-Chat模型进行线下开发评估
-                max_tokens=2000,
-                temperature=0.0,  # temperature 实际跑分时默认设置为0.0，避免随机性
-                stream=False
-            )
-            llm_outputs2 = llm_response.choices[0].message.content
+            llm_response = self.run_inference_llm(temp_messages2)
+            llm_outputs2 = llm_response
             user_prompt = f"Given {llm_outputs2}. I want one letter answer without any other sentences or period, our updated answer is: "
             
 
@@ -630,14 +598,8 @@ class submission():
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": user_prompt}
             ]
-            llm_response = client.chat.completions.create(
-                messages=temp_messages1,
-                model=model,  # 这里填写所选择的LLM名称，推荐使用Qwen1.5-14B-Chat模型进行线下开发评估
-                max_tokens=2000,
-                temperature=0.0,  # temperature 实际跑分时默认设置为0.0，避免随机性
-                stream=False
-            )
-            llm_outputs1 = llm_response.choices[0].message.content
+            llm_response = self.run_inference_llm(temp_messages1)
+            llm_outputs1 = llm_response
 
             system_prompt = "Your answer is JUST one word without period. You are a database expert, output can only be one word 'True' or 'False' " \
                             "The ((shorter)) output, the better. Shorter the output, make the output as short as possible. I want [short and correct] output. " \
@@ -649,14 +611,8 @@ class submission():
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": user_prompt}
             ]
-            llm_response = client.chat.completions.create(
-                messages=temp_messages2,
-                model=model,  # 这里填写所选择的LLM名称，推荐使用Qwen1.5-14B-Chat模型进行线下开发评估
-                max_tokens=2000,
-                temperature=0.0,  # temperature 实际跑分时默认设置为0.0，避免随机性
-                stream=False
-            )
-            llm_outputs2 = llm_response.choices[0].message.content
+            llm_response = self.run_inference_llm(temp_messages2)
+            llm_outputs2 = llm_response
             user_prompt = f"Given {llm_outputs2}. I want one word answer without period, our updated answer is: "
 
         messages = [
